@@ -1,0 +1,30 @@
+{
+    "imu-intrinsic": {
+        "param_type": "intrinsic",
+        "sensor_name": "imu",
+        "target_sensor_name": "imu",
+        "device_type": "imu",
+        "param": {
+            "accel_bias": {
+                "x": 0.004594,
+                "y": 0.029138,
+                "z": 0.002971
+            },
+            "gyro_bias": {
+                "x": 0.000677,
+                "y": -0.001002,
+                "z": 0.000343
+            },
+            "accel_scale": {
+                "x": -0.000055,
+                "y": 0.001575,
+                "z": 0.008151
+            },
+            "gyro_scale": {
+                "x": 0.005275,
+                "y": 0.005520,
+                "z": -0.006367
+            }
+        }
+    }
+}

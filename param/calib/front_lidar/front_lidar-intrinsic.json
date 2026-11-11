@@ -1,0 +1,28 @@
+{
+    "front_lidar-intrinsic": {
+        "sensor_name": "front_lidar",
+        "target_sensor_name": "front_lidar",
+        "device_type": "lidar",
+        "param_type": "intrinsic",
+        "param": {
+            "lidar_type": "ATX",
+            "is_open": true,
+            "lidar_ids": "front_lidar",
+            "is_fusion": false,
+            "use_undist": true,
+            "max_range_m": 300.0,
+            "min_range_m": 0.5,
+            "view_width_rad": 7,
+            "view_direction_rad": 0,
+            "target_frame": "front_lidar",
+            "ip_addr": "mgbe3_0",
+            "port": 50000,
+            "buffer_size": 10000,
+            "max_output_count": 3,
+            "additional_param": {
+                "is_gps_time": true,
+                "time_zone": 8
+            }
+        }
+    }
+}

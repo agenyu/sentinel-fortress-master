@@ -1,0 +1,415 @@
+# ====================== 话题配置 ======================
+# 摄像头（哨兵模式使用 4 路鱼眼环视 FOV195，不使用 center_camera_fov120）
+camera_topics:
+  - "/sensor/camera/front_camera_fov195/encode"
+  - "/sensor/camera/rear_camera_fov195/encode"
+  - "/sensor/camera/left_camera_fov195/encode"
+  - "/sensor/camera/right_camera_fov195/encode"
+
+# topic → 相机名称映射（与标定参数目录名一致，顺序对应 camera_topics）
+camera_names:
+  - "front_camera_fov195"
+  - "rear_camera_fov195"
+  - "left_camera_fov195"
+  - "right_camera_fov195"
+
+# 鱼眼标定参数根目录（包含 <camera_name>/<camera_name>-intrinsic.json 和 extrinsic.json）
+calib_base_dir: "../param/calib"
+# Inbox差值框专用外参；普通视觉/LiDAR关联仍使用上面的 calib_base_dir
+inbox_calib_dir: "../param/calib_inbox"
+
+imu_topic: "/sensor/imu"
+
+# ====================== 超声波 USS ======================
+# Topic: /parking/pdc/pdc_info  → PdcOutput(扇区距离报警)
+#   sectorDis  : List(UInt16)  各扇区距离(mm)
+#   sourceFlag : List(UInt8)   各扇区数据来源
+# Topic: /parking/meb/meb_info  → MebCollisionMsg(防碰撞距离)
+#   collision.distance     : Float32  预期碰撞点距离(m)
+#   collision.obstacleType : UInt8    障碍物类型
+uss_pdc_topic: "/parking/pdc/pdc_info"
+uss_meb_topic: "/parking/meb/meb_info"
+uss_fused_topic: "/parking/uss/fused_points"
+uss_fused_legacy_topic: "/sensor/uss/fused_points"  # 兼容旧 bag/旧接口
+uss_alert_threshold_mm: 500   # <200mm → HIGH,<500mm → MEDIUM
+uss_fused_coordinate_scale_m: 0.001 # UssFusedPoint x/y 原始单位为mm
+uss_fused_min_exist_prob: 50        # 过滤定长list中的零值/哨兵填充点
+# USS fused点云不可用，关闭哨兵模式 USS-视频融合；PDC raw仅保留订阅/日志，不写入视频track。
+enable_uss_vision_fusion: false
+uss_fusion_max_range_m: 1.3
+uss_fusion_candidate_vision_range_m: 3.0
+uss_fusion_max_age_ms: 200
+uss_fusion_confidence_boost: 0.25
+
+# ====================== 激光雷达 LiDAR ======================
+# 多路 LiDAR → AdsfiLidarPointCloud。注意：LiDAR 仅用于越野堡垒 ORSM，哨兵模式禁止使用。
+# 车端当前上报点云已是车辆坐标系，订阅侧不再依赖 LiDAR 外参标定。
+# lidar_names 顺序与 lidar_topics 一一对应，仅用于日志/识别。
+# GPU 服务器 /root/bag 测试包包含 front/left/rear/right 四路 LiDAR。
+# RSCL点云单点pointStep=16字节；两种雷达的padding位置不同。
+# 速腾: x@0,y@2,z@4,pad@6,time@8,intensity@12,ring@13,pad@14
+# 补盲: x@0,y@2,z@4,time@6,intensity@10,ring@11,pad@12
+lidar_topics:
+  - "/sensor/lidar/front_lidar"
+  - "/sensor/lidar/left_lidar"
+  - "/sensor/lidar/rear_lidar"
+  - "/sensor/lidar/right_lidar"
+lidar_names:
+  - "front_lidar"
+  - "left_lidar"
+  - "rear_lidar"
+  - "right_lidar"
+lidar_point_layouts:
+  - "robosense_aligned16" # front：0721 bag实测 timestamp@8
+  - "robosense_aligned16" # left：0721 bag实测 timestamp@8
+  - "robosense_aligned16" # rear：0721 bag实测 timestamp@8
+  - "robosense_aligned16" # right：0721 bag实测 timestamp@8
+lidar_near_distance_m: 3.0    # 多路点云合并后统计近距离检测范围(m)
+lidar_near_min_points: 50     # 合并点云中 ≥50点@3m → MEDIUM
+lidar_time_sync_mode: "real_vehicle" # 对齐 04 视频：使用实车严格时间窗口
+lidar_max_age_ms: 200         # 实车与视频帧融合时允许的 LiDAR 最大时间差；过旧点云不融合
+lidar_bag_replay_max_age_ms: 3000 # bag 回放时间戳偏差较大时使用，禁止作为实车默认兜底
+lidar_merge_voxel_leaf_m: 0.10 # 多路 LiDAR 合并时按车辆坐标体素去重，0 表示不去重
+
+# ====================== 单节点对外 Topic(借鉴 development 命名) ======================
+# 注意:master 仍只启动 sentinel_perception,一个进程内完成融合、状态机和输出。
+# development 的 /sentry_orsm/internal/* 多节点内部链路不在单节点中作为进程间 topic 使用。
+vehicle_report_topic: "/canbus/vehicle_report"
+chassis_info_topic: "/driver/chassis_info_m18v2"
+sentry_request_topic: "/network/sentry_req"
+sentry_state_topic: "/sentry/state_broadcast"
+sentry_event_topic: "/network/sentry_resp"
+sentry_action_topic: "/sentry/action_request"
+sentry_media_cmd_topic: "/sentry/internal/media_cmd"
+sentry_media_result_topic: "/sentry/internal/media_result"
+orsm_setting_topic: "network/fortress_req_ivi"
+orsm_set_info_topic: "network/fortress_req_tbox"
+orsm_state_topic: "/network/fortress_resp"
+orsm_action_topic: "/orsm/action_request"
+
+# ====================== 车辆状态 / ODD ======================
+# 收到 /canbus/vehicle_report 时优先使用实时字段;字段缺失或消息超时则使用以下默认值,便于台架调试。
+vehicle_report_timeout_sec: 2.0
+soc_min_sentry: 15.0
+soc_min_orsm: 30.0        # ORSM T1 激活 SOC 阈值
+soc_exit_orsm: 20.0       # ORSM T2 退出 SOC 阈值
+orsm_speed_exit_threshold_kmh: 20.0 # ORSM T2 退出车速阈值
+speed_zero_threshold_kmh: 0.1
+# override_xxx=true 时强制使用对应 default_xxx；false 时使用实车信号，信号缺失才回退 default_xxx。
+override_power_ok: true
+default_power_ok: true
+override_speed_zero: true
+default_speed_zero: true
+override_gear_park: true
+default_gear_park: true
+override_handbrake_on: true
+default_handbrake_on: true
+override_power_off: true
+default_power_off: true
+override_no_sensor_fault: true
+default_no_sensor_fault: true
+override_no_occupant: true
+default_no_occupant: true
+override_vehicle_locked: true
+default_vehicle_locked: true
+override_temp_ok: true
+default_temp_ok: true
+override_key_far: true
+# 台架无钥匙/DMS/存储状态信号时的调试默认值。
+default_key_far: true
+override_storage_ok: true
+default_storage_ok: true
+# 绕开 APP 自行开启的调试/部署开关；默认必须关闭，实车常规流程由 APP 请求开启。
+user_enabled: true
+user_shutdown_requested: false
+odd_temp_min_c: -40.0
+odd_temp_max_c: 85.0
+odd_light_min_lux: 70.0
+min_temp_storage_bytes: 5368709120      # 5GB 临时缓存
+min_persistent_storage_bytes: 21474836480 # 20GB 永久/外置存储
+persistent_storage_dir: "/mnt/sentry"
+
+# ====================== 摄像头 / 解码 ======================
+# 输入模式：
+#   encoded_hevc：订阅 CameraEncodedStruct 编码流(topic 通常为 /sensor/camera/*/encode)，再用 NVDEC 解码。
+#   cuda_frame ：订阅车端 CudaSubscriber Memblock，格式为 ImageHeader_t + BGR/NV12 raw frame。
+# 实车若按车端示例 sub.cpp 发布 CUDA 图像帧，应改为 cuda_frame。
+camera_input_mode: "encoded_hevc"
+# encoded_hevc 解码后端：
+#   ffmpeg_nvdec：x86/GPU 云端 bag 回放验证使用 FFmpeg CUVID/NVDEC。
+#   nvmedia：Thor/车端使用 libsentinel_nvmedia_decoder.so。
+#   auto：优先 nvmedia，失败后回退 ffmpeg_nvdec（仅调试用，生产建议显式指定）。
+camera_decoder_backend: "ffmpeg_software"
+
+# 鱼眼 FOV195 原始分辨率 1920x1536；encoded_hevc 用于 NVDEC 初始化，cuda_frame 以消息头宽高为准。
+camera_width:  1920
+camera_height: 1536
+gpu_id: 0
+
+# NvMedia/HEVC 解码链路诊断，默认关闭。打开后每路相机保存有限数量的：
+#   *.h265：送入解码器的原始 HEVC 包
+#   *_decoded_bgr.png：bridge/decoder 输出的 BGR
+#   *_node_raw_bgr.png / *_undistorted_bgr.png：进入节点后的原图和去畸变图
+camera_decode_debug_enabled: false
+camera_decode_debug_dir: "./nvmedia_decode_debug"
+camera_decode_debug_max_frames_per_camera: 5
+camera_decode_debug_save_hevc: false
+camera_decode_debug_save_decoded_bgr: false
+camera_decode_debug_save_node_images: false
+
+# 多路相机时间同步：4 路相机必须按时间戳同步成组处理；同步不齐时丢弃该组并记录缺失路，不能单路降级作为正常感知结果。
+enable_camera_sync: true
+camera_sync_tolerance_ms: 120
+camera_sync_timeout_ms: 1000
+camera_sync_max_buffered_frames: 30
+camera_sync_enable_hold: true
+camera_sync_hold_ms: 300
+camera_sync_enable_degrade: true
+camera_sync_degrade_ms: 2500
+# 顺序对应 camera_names：front/rear/left/right。校正时间戳 = 原始时间戳 + offset_ms。
+# 若实测某路相机时间戳固定偏早/偏晚，可在这里补偿后再按 tolerance 匹配。
+camera_sync_offsets_ms: [0, 0, 0, 0]
+# 右后相机原始约 20Hz，入同步队列前按前视相位 + 100ms 时间桶降到 ≈10Hz。
+camera_sync_half_rate_cameras:
+  - "rear_camera_fov195"
+  - "right_camera_fov195"
+
+# ====================== 多帧视觉稳定策略 ======================
+# 正常 track 连续确认 N 帧后才参与报警，短时漏检可保留 N 帧预测 bbox。
+visual_track_confirm_min_age: 3
+visual_track_max_lost_frames: 2
+visual_track_min_confidence: 0.10
+# detection fallback 是负 track，仅用于哨兵低/一般威胁兜底；连续 N 帧后才启用。
+visual_fallback_min_streak: 3
+# 检测框缺失时的图像运动兜底：接触型 ROI 用于贴车/拍玻璃；路过型 ROI 用于前后道路连续运动目标。
+sentry_near_field_motion_enabled: true
+sentry_near_field_motion_min_changed_ratio: 0.05
+sentry_near_field_motion_min_mean_delta: 7.0
+sentry_near_field_motion_min_streak: 2
+sentry_passing_motion_enabled: true
+sentry_passing_motion_min_changed_ratio: 0.003
+sentry_passing_motion_min_mean_delta: 0.8
+sentry_passing_motion_min_component_ratio: 0.0004
+sentry_passing_motion_min_streak: 2
+# 堡垒模式允许稳定视觉目标触发；LiDAR 融合仅提升距离/位置精度。
+# 相机局部 tracker ID 可能被另一目标复用，不允许它经"身份延续"捷径认领已有 global ID；
+# 纯相机候选仍可走几何最近邻关联，LiDAR 时序候选(L#/差值框)不受影响。
+orsm_visual_confirm_min_age: 3
+orsm_debug_track: true
+
+# ====================== IMU 振动阈值 ======================
+# 对齐设计文档表14/表16：区分一般威胁（小幅震动）和严重威胁（大幅震动）
+# 水平加速度合力 (m/s2)
+imu_accel_threshold: 2.0          # 一般威胁阈值（小幅震动）
+imu_accel_severe_threshold: 5.0   # 严重威胁阈值（大幅震动/碰撞）
+# 角速度合力 (rad/s)
+imu_gyro_threshold: 0.5           # 一般威胁阈值
+imu_gyro_severe_threshold: 2.0    # 严重威胁阈值
+# 门把手震动频率特征范围 (Hz)
+imu_handle_freq_min: 10.0
+imu_handle_freq_max: 50.0
+# 在线振动检测：2 Hz 高通 + 0.5 s RMS + 0.3 s 持续确认。
+# 阈值由摇晃、5m/15m 及两个 30m 外静止实测包标定。
+imu_highpass_cutoff_hz: 2.0
+imu_rms_window_ms: 500
+imu_vibration_min_duration_ms: 300
+imu_vibration_latch_ms: 3000
+imu_accel_rms_threshold: 0.14
+imu_gyro_rms_threshold: 0.0015
+imu_accel_severe_rms_threshold: 0.20
+imu_gyro_severe_rms_threshold: 0.0040
+imu_accel_guard_rms: 0.04
+
+# ====================== 目标检测 ======================
+# 主链路使用 YOLOv8m (1920x1536 FP16) + TensorRT。相对路径以运行目录为基准。
+# Engine 不进入 Git；必须先由匹配的 .pt 权重导出 ONNX，再在目标 TensorRT/GPU 平台本地生成。
+# detector_model_type 可选：
+#   rfdetr：DETR 风格 boxes + logits/scores 多输出
+#   yolo  ：YOLOv5/YOLOv8 风格单输出张量，使用 nms_threshold
+detector_model_type: "yolo"
+engine_path: "../models/yolov8m_best_1920x1536_fp16_new.engine"
+conf_threshold: 0.10
+nms_threshold: 0.45 # YOLO 候选框 NMS 的 IoU 阈值。
+
+# ====================== 可视化 / 保存 ======================
+enable_display: false
+enable_save: false
+save_interval: 1
+save_dir: ""
+
+# ====================== 告警录像/事件输出 ======================
+enable_event_recording: false
+event_pre_seconds: 30
+event_post_seconds: 30
+event_record_fps: 10        # 4 路鱼眼统一目标帧率；入队按 100ms 抽帧，编码输出恒定 10fps
+event_record_dir: "./events"
+event_log_path: "./events/sentry_events.jsonl"
+event_record_max_bytes: 21474836480 # 20GB；超过后按旧到新删除事件目录，直到降到一半；0 表示关闭
+event_log_max_bytes: 52428800       # 50MB；超过后轮转为 .1；0 表示关闭
+
+# ====================== 越野堡垒 ORSM ======================
+# 对齐 OrsmInfo.proto / senseauto-msgs: ad_msg_idl/l3_msgs/orsm_info.capnp.h
+orsm:
+  # 三级检测区域半径(m)
+  zone_a_radius: 30.0    # A区(最外围)- I级报警
+  zone_b_radius: 15.0    # B区(中间)  - II级报警
+  zone_c_radius: 5.0     # C区(核心)  - III级报警
+  intruder_dedup_distance_m: 1.0 # 入侵物空间去重距离阈值；<=0 表示关闭去重
+
+  # 默认用户设置(可被 IVI/TBOX SOME/IP 输入覆盖),枚举值与 OrsmInfo.proto 一致
+  default_orsm_setting_st: 1              # 离线回放默认进入单车 ORSM；仍可被 IVI/TBOX 输入覆盖
+  default_humans_recog_setting: 1         # BasicSwitchReq: 0=NONE,1=ON,2=OFF,3=Reversed
+  default_animals_recog_setting: 1        # BasicSwitchReq
+  default_detec_range_setting: 1          # DetecRangeSetting: 0=无,1=A区,2=B区,3=C区
+  default_alarm_light_setting: 1          # BasicSwitchReq
+  default_alarm_horn_setting: 1           # BasicSwitchReq
+  default_alarm_sound_setting: 0          # AlarmSoundType: 0=急促,1=温和
+  default_alarm_snd_dura_setting: 2       # AlarmSoundDuration: 0=无,1=3s,2=5s,3=10s
+  default_multi_vehicle_team_setting: 0   # MultiVehicleTeamSettingEnum
+  default_multi_vehicle_team_req: 0       # MultiVehicleTeamReqEnum
+  default_multi_vehicle_team_prepared: 1  # MultiVehicleTeamPreparedEnum: PREPARED
+  default_tbox_team_status_info: 2        # TeamStatusEnum: 0=未组队,1=组队中,2=组队完成
+  default_multi_vehicle_role: 0           # 0=未知,1=队长,2=队员；正式信号由 IVI/TBOX 请求推断
+  default_multi_vehicle_team_ready: true  # 多车联防链路/组队是否默认就绪
+  default_vehicle_stationary_over_60s: true # 是否默认满足静止60s进入条件
+  default_external_locked: true           # 是否默认外部锁车完成
+  replay_force_entry_odd: true            # 仅离线回放验证使用；实车必须保持 false
+  sensor_data_timeout_ms: 2000            # 开启时相机/雷达墙钟超时无数据→0x7；<=0 关闭；与 CAN override_no_sensor_fault 独立
+  lidar_continuation_max_age_ms: 15000    # 动态目标自最后视觉确认起最多 LiDAR-only 延续15s；静态目标仍仅短时保持
+  far_image_motion_tracking_enabled: true  # 15m以上远距小目标检测短时丢失时，允许图像运动延续已有稳定轨迹
+  far_image_motion_allow_lidar_backed_new_targets: true # 远距图像运动与LiDAR稳定轨迹关联后，允许生成unknown新候选
+  far_image_motion_min_streak: 2
+  far_image_motion_debug_every_frame: true # true时逐帧打印差值框高度、底边像素位置和估计距离
+  far_image_motion_lidar_assoc_min_distance_m: 15.0 # YOLO/差值框重合时的近/远归属分界
+  far_image_motion_unclassed_min_distance_m: 15.0 # 无YOLO重合的差值框关联下限
+  far_image_motion_lidar_assoc_min_streak: 2 # 连续2次差值框Inbox匹配后才获得差值框租约
+  far_image_motion_near_filter_ratio: 0.80 # 同一差值框内丢弃 distance<0.80*框估距 的近处干扰簇
+  far_image_motion_far_filter_ratio: 2.0 # 同一差值框内丢弃 distance>2.0*框估距 的明显远处背景簇；<=0关闭
+  far_image_motion_lidar_assoc_max_range_gap_m: 5.0 # 差值框估距与关联簇的距离残差上限(m)；|簇距-框估距|>该值视为同一射线上的另一物体；<=0关闭
+  far_image_motion_inbox_lease_priority_enabled: true # InBox选簇时优先延续活跃租约/已绑定L#：把其预测位置投影进差值框，命中则不按残差排序
+  far_image_motion_classed_box_split_ownership_enabled: true # YOLO框与差值框重叠时的归属：差值框估距>近/远分界则由带类别的差值框独占(检测框丢弃)，否则只留检测框
+  far_image_motion_max_box_area_ratio: 0.005 # 差值框面积上限为整图0.5%
+  far_image_motion_max_visual_range_front_m: 55.0 # front相机差值框估距上限，超过视为不可信框直接跳过
+  far_image_motion_max_visual_range_other_m: 35.0 # 其他相机差值框估距上限(bbox高度兜底易编出70~138m假框)
+  rear_motion_range_override_enabled: true # 后相机指定图像区域的框高兜底估距修正
+  rear_motion_range_override_min_center_u_px: 1550.0
+  rear_motion_range_override_max_center_u_px: 1710.0
+  rear_motion_range_override_min_bottom_v_px: 512.0
+  rear_motion_range_override_max_bottom_v_px: 540.0
+  rear_motion_range_override_distance_m: 30.0
+  far_image_motion_min_changed_ratio: 0.0
+  far_image_motion_min_mean_delta: 0.0
+  far_image_motion_min_component_ratio: 0.0
+  far_image_motion_confidence: 0.30
+  far_image_motion_class_transfer_min_overlap: 0.50 # YOLO与差值框重合阈值；重合后只保留YOLO
+  far_image_motion_classed_single_match_enabled: false # 带类别差值框也必须满足连续2次匹配，不再单帧放行
+  class_label_lock_enabled: true # 类别按置信度单调提升：unknown可被真实类别升级；只能被"严格更高置信度"的真实类别替换；unknown永不覆盖已有类别
+  alarm_first_publish_class_required: false # 首次发布不强制要求类别；15m外unknown差值框也可按其他证据发布
+  alarm_first_publish_min_distance_m: 0.0 # 类别门槛关闭；重新开启时才生效
+  alarm_first_publish_max_distance_m: 0.0 # 类别门槛关闭；<=0表示不设上限
+  lidar_semantic_latch_output_enabled: true     # 首次真实视觉语义关联可立即发布同一 L#
+  lidar_semantic_latch_refresh_ms: 20000        # 真实视觉语义关联后同一 L# 的发布资格租约
+  far_image_motion_lease_ms: 3000               # 差值框(绿圈)租约时长；不会缩短同一轨迹已有的20秒语义租约
+  front_lidar_motion_lease_enabled: true        # 前向垂直接近的LiDAR轨迹兜底，仅X>20m生效
+  front_lidar_motion_min_x_m: 20.0              # 前向特殊规则的外侧起始距离
+  front_lidar_motion_max_abs_y_m: 10.0         # 前向横向走廊：-10m～+10m
+  front_lidar_motion_max_y_span_m: 1.0         # 最近5个观测的Y最大摆幅
+  front_lidar_motion_min_x_progress_m: 1.0     # 窗口内X至少向车头靠近1m
+  front_lidar_motion_min_history_points: 5     # 同一L#至少5个连续观测
+  front_lidar_motion_min_toward_steps: 3       # 至少3次X向0靠近
+  front_lidar_motion_history_max_age_ms: 3000  # 历史窗口最长3s
+  front_lidar_motion_lease_ms: 3000            # 前向轨迹确认后的短租约
+  lidar_semantic_latch_max_active_targets: 5    # 放宽单目标语义租约限制(1→5)以验证返回段多目标并发发布
+  lidar_only_far_output_enabled: true          # 10m以上稳定 LiDAR-only 轨迹允许无语义输出
+  lidar_only_far_output_min_distance_m: 10.0   # 小于该距离仍需语义/视觉或运动确认，控制近车误报
+  track_stable_min_age_ms: 500                 # 候选轨迹至少持续多久才可升级稳定
+  track_stable_min_observations: 4             # 视频/融合观测稳定升级最少观测次数
+  track_stable_lidar_min_observations: 3       # LiDAR-only 稳定升级最少观测次数
+  track_stable_max_uncertainty_m: 1.20         # 位置不确定度低于该值才可升级稳定
+  track_lost_timeout_ms: 2200                  # 稳定目标失去观测后停止输出的保持窗口
+  track_prune_timeout_ms: 3200                 # 失去观测超过该窗口后删除轨迹
+  visual_lidar_ground_gate_enabled: true      # 视觉地面位置约束点云关联，防止近处人体框吸附远处背景
+  visual_lidar_ground_gate_min_m: 1.5
+  visual_lidar_ground_gate_range_ratio: 0.35
+  lidar_visual_roi_enabled: true              # 仅用相机框约束真实 LiDAR 簇，不从 ROI 生成新簇
+  lidar_history_anchor_enabled: true          # 历史 L# 只帮助接纳当前真实稀疏簇，不单独授予租约
+  lidar_history_anchor_max_age_ms: 3000
+  lidar_history_anchor_gate_m: 1.8
+  lidar_primary_voxel_leaf_m: 0.30        # LiDAR 主聚类前体素降采样，降低多路点云聚类耗时
+  lidar_primary_cluster_tolerance_m: 0.65 # LiDAR 主轨迹欧式聚类半径
+  lidar_primary_min_cluster_points: 12    # 有效 LiDAR 入侵物 cluster 最少点数
+  lidar_primary_mid_min_distance_m: 15.0  # 15m以上进入中距离点数门限
+  lidar_primary_mid_min_cluster_points: 7 # 15～18.5m使用7点门限
+  lidar_primary_far_min_distance_m: 18.5  # 超过该距离使用远距离稀疏簇阈值
+  lidar_primary_far_min_cluster_points: 3 # 18.5m以外使用3点聚类门限
+  lidar_primary_far_voxel_leaf_m: 0.15   # 18.5m以外使用更细体素
+  lidar_primary_far_cluster_tolerance_m: 0.50 # 18.5m以外使用更小聚类容差
+  lidar_primary_anchor_min_cluster_points: 3 # 已确认人体预测邻域允许的稀疏真实簇点数
+  lidar_primary_anchor_max_radius_m: 1.5  # 防止背景大簇继承人体语义
+  lidar_primary_anchor_min_height_m: 0.15 # 稀疏簇最小垂直跨度
+  lidar_primary_static_background_filter_enabled: true # 时序滤除长期静止、未获真实语义的背景簇
+  lidar_primary_static_background_min_hits: 5
+  lidar_primary_static_background_max_displacement_m: 0.50
+  lidar_primary_static_background_max_speed_mps: 0.35
+  static_cluster_semantic_lockout_enabled: true
+  static_cluster_semantic_lockout_min_hits: 5
+  static_cluster_semantic_lockout_max_displacement_m: 0.50
+  lidar_primary_min_z_m: 0.15             # 地面滤波，避免人簇与地面连通
+  lidar_primary_max_z_m: 2.5              # 过滤车高以上噪声
+  lidar_primary_front_fixed_ground_plane_enabled: false # 暂时关闭前雷达固定 ABC 地面补偿
+  lidar_primary_front_fixed_ground_plane_a: 0.00529     # ground_z = a*前 + b*左 + c（0915）
+  lidar_primary_front_fixed_ground_plane_b: 0.01740
+  lidar_primary_front_fixed_ground_plane_c: 0.00473
+  lidar_primary_front_fixed_ground_plane_min_height_m: 0.30
+  lidar_primary_source_z_split_distance_m: 25.0 # >25m 才按雷达来源放宽高度
+  lidar_primary_side_rear_min_z_m: -0.15  # >25m 左/右/后雷达保留的最低高度；前雷达仍为0.15m
+  lidar_primary_left_min_z_m: -0.20       # >25m 左雷达单独放宽到-0.20m
+  lidar_primary_semantic_gate_m: 1.6      # LiDAR cluster 与视频目标语义关联半径
+
+  # 多车联防 ODD 阈值（按设计文档：组队中进入车速≤10km/h，联防退出车速>20km/h）
+  multi_vehicle_enable_network_check: true
+  multi_vehicle_stationary_required_sec: 60
+  multi_vehicle_speed_entry_max_kmh: 10.0
+  multi_vehicle_speed_exit_max_kmh: 20.0
+  multi_vehicle_soc_entry_min: 30.0
+  multi_vehicle_soc_exit_min: 20.0
+
+  # 多车联防安防侧区域模型：外部区/内部区/5m不报警区
+  # security_side: 1=左侧(Y+), -1=右侧(Y-), 0=不限制侧向（台架/无标定回退）
+  multi_vehicle_security_side: 1
+  multi_vehicle_external_radius: 30.0
+  multi_vehicle_internal_radius: 15.0
+  multi_vehicle_no_alarm_radius: 5.0
+
+  # ODD 阈值
+  soc_activate_threshold: 30.0    # SOC≥30% 才能激活
+  soc_deactivate_threshold: 20.0  # SOC<20% 强制退出
+  speed_max_kmh: 20.0             # 车速>20km/h 强制退出
+
+  # 距离估算参数(简化模型,实际应融合 LiDAR)
+  distance_ref_constant: 6120.0   # bbox_height → distance 换算常数
+
+# ====================== 全局模式互斥 ======================
+# 当前设计范围仅三种模式：哨兵模式、单车堡垒模式、多车堡垒模式。
+# 单车/多车堡垒开启时优先于哨兵；单车/多车由 ORSM 设置和组队状态路由。
+
+# ====================== RSCL Publish ======================
+# 上车调测时设为 true，开启真实 RSCL topic publish
+# 设为 false 时仅保留 JSONL + 控制台日志输出
+enable_rscl_publish: true
+# 哨兵状态输出频率模式（仅控制 /network/sentry_resp）：
+#   event_driven: 仅模式开启/关闭、请求响应、报警发生/取消/升级等状态变化时发布（默认）
+#   fixed_10hz   : 独立线程固定 10Hz 发布 /network/sentry_resp
+#   per_frame    : 每处理一帧图像/同步组发布一次，输出消息时间戳使用该图像帧时间戳
+# 堡垒状态 /network/fortress_resp 与哨兵独立，固定按每个已处理图像同步组发送。
+status_publish_mode: "event_driven"
+
+# ORSM 处理间隔。200ms 在 0629 堡垒 bag 上会因抽帧漏掉同一轮预警的第二个对象；
+# 50ms 能保留多目标输出，同时仍避免逐相机帧全量处理。
+orsm_process_interval_ms: 50
+
+# ====================== 算法耗时日志 ======================
+# 车端调测性能时开启；关闭后不输出算法总耗时/模块耗时统计日志。
+enable_algorithm_time_log: true
+# 每处理 N 帧输出一次累计耗时统计；100ms 上限为需求指标，固定在代码日志中输出。
+algorithm_time_log_interval_frames: 50

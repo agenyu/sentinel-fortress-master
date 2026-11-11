@@ -1,0 +1,43 @@
+{
+    "left_camera_fov195-to-car_center-extrinsic": {
+        "sensor_name": "left_camera_fov195",
+        "target_sensor_name": "car_center",
+        "device_type": "relational",
+        "param_type": "extrinsic",
+        "param": {
+            "time_lag": 0,
+            "sensor_calib": {
+                "rows": 4,
+                "cols": 4,
+                "type": 5,
+                "continuous": true,
+                "data": [
+                    [
+                        0.999876819944816,
+                        -0.009084285134787,
+                        0.012799246096196,
+                        1.974618943176617
+                    ],
+                    [
+                        -0.015524726802561,
+                        -0.452497353460582,
+                        0.891630600623866,
+                        1.096711337992816
+                    ],
+                    [
+                        -0.002308201626149,
+                        -0.891719474316200,
+                        -0.452582645856526,
+                        1.280656195370863
+                    ],
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                    ]
+                ]
+            }
+        }
+    }
+}

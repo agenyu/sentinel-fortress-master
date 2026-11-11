@@ -1,0 +1,38 @@
+{
+    "vehicle": {
+        "sensor_name": "vehicle",
+        "target_sensor_name": "vehicle",
+        "device_type": "vehicle",
+        "param_type": "hardware",
+        "param": {
+            "type": "Vehicle",
+            "property": {
+                "car_length": 4.960,
+                "car_width": 1.950,
+                "wheel_base": 3.000,
+                "front_axis_to_front_bumper": 0.881,
+                "rear_axis_to_rear_bumper": 1.079,
+
+                "car_center_height": 0,
+                "wheel_track": 1.65,
+                "front_right_wheel": {
+                    "x": 2.998,
+                    "y": -0.824
+                },
+                "front_left_wheel": {
+                    "x": 2.998,
+                    "y": 0.824
+                },
+                "back_right_wheel": {
+                    "x": 0,
+                    "y": -0.824
+                },
+                "back_left_wheel": {
+                    "x": 0,
+                    "y": 0.824
+                },
+                "car_height": 1.730
+            }
+        }
+    }
+}

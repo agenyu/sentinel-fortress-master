@@ -1,0 +1,143 @@
+// 2026.04.17 qinjianyong v1.0
+syntax = "proto3";
+
+// 公共消息头（示例定义，可根据实际需求调整）
+message Header {
+    uint32 seq = 1;           // 序列号
+    uint64 timestamp_ms = 2;  // 时间戳（毫秒）
+}
+
+// 哨兵预约开启日期枚举
+enum SentinelScheduledStartDay {
+    UNKNOWN_DAY = 0;
+    SCHEDULED_MONDAY = 1;
+    SCHEDULED_TUESDAY = 2;
+    SCHEDULED_WEDNESDAY = 3;
+    SCHEDULED_THURSDAY = 4;
+    SCHEDULED_FRIDAY = 5;
+    SCHEDULED_SATURDAY = 6;
+    SCHEDULED_SUNDAY = 7;
+    TODAY = 8;
+    TOMORROW = 9;
+}
+
+// 哨兵预约开启时间
+message SentinelScheduledStartTime {
+    SentinelScheduledStartDay sentinel_scheduled_start_dday = 1;   // 哨兵预约开启日期
+    uint32 sentinel_scheduled_start_hour = 2;                      // 哨兵预约开启小时
+    uint32 sentinel_scheduled_start_minute = 3;                    // 哨兵预约开启分钟
+}
+
+// 哨兵请求消息类型枚举
+enum SentinelReqMsgType {
+    UNKNOWN_SENTINEL_REQ = 0;               // 未知消息
+    ENABLE_SENTINEL_IMMEDIATELY = 1;        // 开/关立即哨兵
+    DISABLE_SENTINEL_IMMEDIATELY = 2;
+    ENABLE_SENTINEL_AUTOMATICALLY = 3;      // 开/关自动哨兵
+    DISABLE_SENTINEL_AUTOMATICALLY = 4;
+    ENABLE_SENTINEL_SCHEDULED_START = 5;    // 开/关预约哨兵
+    DISABLE_SENTINEL_SCHEDULED_START = 6;
+    ENTER_SENTINEL_MODE_FEATURE = 7;        // 开/关哨兵APP
+    EXIT_SENTINEL_MODE_FEATURE = 8;
+    ENTER_VIDEO_VIEW = 9;                   // 开/关视频查看
+    EXIT_VIDEO_VIEW = 10;
+    REQ_RESERVED = 11;                          // 预留
+}
+
+// 哨兵请求消息（原 msg 的定义）
+message SentinelRequest {
+    Header header = 1;                           // 消息头
+    SentinelReqMsgType sentinel_reqMsg_type = 2; // 哨兵请求消息类型
+    SentinelScheduledStartTime sentinel_scheduled_start_time = 3; // 哨兵预约开启时间
+}
+
+// 哨兵响应消息类型枚举
+enum SentinelResMsgType {
+    UNKNOWN_SENTINEL_RES = 0;               // 0x0: UnknowSentinelMsg
+    APPROVE_SENTINEL_IMMEDIATELY = 1;       // 0x1: ApproveSentinelImmediately
+    DECLINE_SENTINEL_IMMEDIATELY = 2;       // 0x2: DeclineSentinelImmediately
+    APPROVE_SENTINEL_AUTOMATICALLY = 3;     // 0x3: ApproveSentinelAutomatically
+    DECLINE_SENTINEL_AUTOMATICALLY = 4;     // 0x4: DeclineSentinelAutomatically
+    APPROVE_SENTINEL_SCHEDULED_START = 5;   // 0x5: ApproveSentinelScheduledStart
+    DECLINE_SENTINEL_SCHEDULED_START = 6;   // 0x6: DeclineSentinelScheduledStart
+    APPROVE_SENTINEL_MODE_FEATURE = 7;      // 0x7: ApproveSentinelModeFeature
+    DECLINE_SENTINEL_MODE_FEATURE = 8;      // 0x8: DeclineSentinelModeFeature
+    APPROVE_VIDEO_VIEW = 9;                 // 0x9: ApproveVideoView
+    DECLINE_VIDEO_VIEW = 10;                // 0xA: DeclineVideoView
+    RES_RESERVED = 11;                          // 0xB: Reserved
+}
+
+// 哨兵ODD状态枚举
+enum SentinelODDStatus {
+    SATISFY_ALL_ODD = 0;                  // 0x0: SatisfyAllOdd
+    INSUFFICIENT_BATTERY_POWER = 1;       // 0x1: InsufficientBatteryPower
+    INSUFFICIENT_HYBRID_POWER = 2;        // 0x2: InsufficientHybridPower
+    SPEED_REQUIREMENT_NOT_MET = 3;        // 0x3: SpeedRequirementNotMet
+    GEAR_POSITION_NOT_MET = 4;            // 0x4: GearPositionNotMet
+    HANDBRAKE_ENGAGED = 5;                // 0x5: HandbrakeEngaged
+    KEY_OUT_OF_RANGE = 6;                 // 0x6: KeyOutOfRange
+    EV_START_CONDITIONS_NOT_MET = 7;      // 0x7: EVStartConditionsNotMet
+    HYBRID_START_CONDITIONS_NOT_MET = 8;  // 0x8: HybridStartConditionsNotMet
+    SENSOR_MALFUNCTION = 9;               // 0x9: SensorMalfunction
+    TEMPORARY_STORAGE_NOT_AVAILABLE = 10; // 0xA: TemporaryStorageNotAvailable
+    PERMANENT_STORAGE_NOT_AVAILABLE = 11; // 0xB: PermanentStorageNotAvailable
+    NO_PERSON_IN_VEHICLE = 12;            // 0xC: NoPersonInVehicle
+    NO_DRIVER_DETECTED = 13;              // 0xD: NoDriverDetected
+    ODD_RESERVED = 14;                        // 0xE: Reserved
+}
+
+// 哨兵开启失败原因枚举
+enum SentinelEnableFailed {
+    SENTINEL_ENABLE_FAILED_UNKNOWN = 0;                     // 预留零值（原枚举无0）
+    VEHICLE_NOT_IN_PARK_GEAR = 1;                          // 0x1: VehicleNotInParkGear
+    LOW_BATTERY_LEVEL = 2;                                 // 0x2: LowBatteryLevel
+    SYSTEM_UPGRADE_OR_SENSOR_CALIBRATION_IN_PROGRESS = 3;  // 0x3: SystemUpgradeOrSensorCalibrationInProgress
+    SYSTEM_FAULT = 4;                                      // 0x4: SystemFault
+    HAD_NOT_WORKING = 5;                                   // 0x5: HADNotWorking
+    PET_MODE_ACTIVE = 6;                                   // 0x6: PetModeActive
+    MAINTENANCE_MODE_ACTIVE = 7;                           // 0x7: MaintenanceModeActive
+    ULTRA_POWER_SAVING_MODE_ACTIVE = 8;                    // 0x8: UltraPowerSavingModeActive
+    VEHICLE_NOT_LOCKED = 9;                                // 0x9: VehicleNotLocked
+    GEAR_SHIFTING_IN_PROGRESS = 10;                        // 0xA: GearShiftingInProgress
+    INSUFFICIENT_VEHICLE_ENERGY = 11;                      // 0xB: InsufficientVehicleEnergy
+    RPA_FUNCTION_ACTIVE_RPA = 12;                          // 0xC: RPAFunctionActive_RPA
+    AVP_FUNCTION_ACTIVE_AVP = 13;                          // 0xD: AVPFunctionActive_AVP
+    ABNORMAL_VEHICLE_STATUS = 14;                          // 0xE: AbnormalVehicleStatus
+    SYSTEM_MALFUNCTION = 15;                               // 0xF: SystemMalfunction
+    ENA_RESERVED = 16;                                         // 0x10: Reserved
+}
+
+// 哨兵模式威胁枚举
+enum SentinelGeneralThreat {
+    OFF = 0;       // 0x0: OFF
+    ON = 1;        // 0x1: ON
+    ACTIVE = 2;    // 0x2: Active
+    FAILURE = 3;   // 0x3: Failure
+}
+
+// 哨兵模式触发障碍物类型枚举
+enum SentinelObstacleType {
+    UNKNOWN_OBSTACLE = 0;      // 0x0: Unkonw_Obstacle (修正拼写)
+    SEDAN = 1;                 // 0x1: Sedan
+    SUV = 2;                   // 0x2: Suv
+    ADULT = 3;                 // 0x3: Adult
+    CHILD = 4;                 // 0x4: Child
+    BICYCLE = 5;               // 0x5: Bicycle
+    MOTORCYCLE = 6;            // 0x6: Motorcycle
+    E_BIKE = 7;                // 0x7: E_bike
+    ANIMAL = 8;                // 0x8: Animal
+    UNIDENTIFIED_COLLISION = 9; // 0x9: Unidentified_Collision
+    UNIDENTIFIED_SCRAPING = 10; // 0xa: Unidentified_Scraping
+}
+
+// 哨兵响应消息结构体
+message SentinelResStatus {
+    Header header = 1;  
+    SentinelResMsgType sentinel_res_msg_type = 2;       // 哨兵响应消息类型
+    SentinelODDStatus sentinel_odd_status = 3;          // 哨兵ODD状态
+    SentinelEnableFailed sentinel_enable_failed = 4;    // 哨兵开启失败原因
+    SentinelGeneralThreat sentinel_general_threat = 5;  // 哨兵模式一般威胁
+    SentinelGeneralThreat sentinel_severe_threat = 6;    // 哨兵模式严重威胁
+    SentinelGeneralThreat sentinel_audio_visual_alarm = 7; // 哨兵模式声光报警
+    SentinelObstacleType sentinel_obstacle_type = 8;    // 哨兵模式触发障碍物类型
+}

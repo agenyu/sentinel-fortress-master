@@ -1,0 +1,6 @@
+# Isolated ONNX export environment. TensorRT engine generation uses the
+# project-pinned TensorRT bindings/runtime described in models/MODEL_INFO.md.
+--extra-index-url https://download.pytorch.org/whl/cpu
+rfdetr[onnx]==1.9.2
+torch==2.13.0+cpu
+torchvision==0.28.0+cpu

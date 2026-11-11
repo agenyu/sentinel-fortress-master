@@ -1,0 +1,83 @@
+# RF-DETR Base COCO sparse category-id mapping.
+# Format: raw_model_class_id<TAB>canonical_label<TAB>downstream_label
+# IDs absent from this file are unused COCO slots and must be ignored.
+1	person	person
+2	bicycle	bicycle
+3	car	vehicle
+4	motorcycle	motorcycle
+5	airplane	airplane
+6	bus	vehicle
+7	train	train
+8	truck	vehicle
+9	boat	boat
+10	traffic light	traffic light
+11	fire hydrant	fire hydrant
+13	stop sign	stop sign
+14	parking meter	parking meter
+15	bench	bench
+16	bird	animal
+17	cat	animal
+18	dog	animal
+19	horse	animal
+20	sheep	animal
+21	cow	animal
+22	elephant	animal
+23	bear	animal
+24	zebra	animal
+25	giraffe	animal
+27	backpack	backpack
+28	umbrella	umbrella
+31	handbag	handbag
+32	tie	tie
+33	suitcase	suitcase
+34	frisbee	frisbee
+35	skis	skis
+36	snowboard	snowboard
+37	sports ball	ball
+38	kite	kite
+39	baseball bat	baseball bat
+40	baseball glove	baseball glove
+41	skateboard	skateboard
+42	surfboard	surfboard
+43	tennis racket	tennis racket
+44	bottle	bottle
+46	wine glass	wine glass
+47	cup	cup
+48	fork	fork
+49	knife	knife
+50	spoon	spoon
+51	bowl	bowl
+52	banana	banana
+53	apple	apple
+54	sandwich	sandwich
+55	orange	orange
+56	broccoli	broccoli
+57	carrot	carrot
+58	hot dog	hot dog
+59	pizza	pizza
+60	donut	donut
+61	cake	cake
+62	chair	chair
+63	couch	couch
+64	potted plant	potted plant
+65	bed	bed
+67	dining table	dining table
+70	toilet	toilet
+72	tv	tv
+73	laptop	laptop
+74	mouse	mouse
+75	remote	remote
+76	keyboard	keyboard
+77	cell phone	cell phone
+78	microwave	microwave
+79	oven	oven
+80	toaster	toaster
+81	sink	sink
+82	refrigerator	refrigerator
+84	book	book
+85	clock	clock
+86	vase	vase
+87	scissors	scissors
+88	teddy bear	teddy bear
+89	hair drier	hair drier
+90	toothbrush	toothbrush

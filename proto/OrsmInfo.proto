@@ -1,0 +1,192 @@
+// 2026.04.17 qinjianyong v1.0
+syntax = "proto3";
+
+// 公共消息头（示例定义，可根据实际项目调整）
+message Header {
+    uint32 seq = 1;
+    uint64 timestamp_ms = 2;
+}
+
+// ==================== 枚举定义 ====================
+
+// 开关请求枚举（请求方向）
+enum BasicSwitchReq {
+    BASIC_SWITCH_REQ_NONE = 0;   // 0x0: NONE
+    BASIC_SWITCH_REQ_ON = 1;     // 0x1: ON
+    BASIC_SWITCH_REQ_OFF = 2;    // 0x2: OFF
+    BASIC_SWITCH_REQ_REVERSED = 3; // 0x3: Reversed
+}
+
+// 开关响应枚举（响应方向）
+enum BasicSwitchResp {
+    BASIC_SWITCH_RESP_NONE = 0;   // 0x0: NONE
+    BASIC_SWITCH_RESP_ON = 1;     // 0x1: ON
+    BASIC_SWITCH_RESP_OFF = 2;    // 0x2: OFF
+    BASIC_SWITCH_RESP_REVERSED = 3; // 0x3: Reversed
+}
+
+// 越野堡垒模式开关类型
+enum OrsmSettingType {
+    OFF = 0;                               // 功能关闭
+    SINGLE_AUTO_SECURITY_ON = 1;           // 单车安防开启
+    MULTI_VEHICLE_JOINT_SECURITY_ON = 2;   // 多车联防开启
+    FUNCTION_LIMITED_ENABLE_FAILED = 3;    // 功能受限，开启失败
+}
+
+// 监测范围设置类型
+enum DetecRangeSetting {
+    NONE_RANGE = 0;      // 无设置
+    RANGE_A = 1;         // 最外围区域-A区
+    RANGE_B = 2;         // 中间区域-B区
+    RANGE_C = 3;         // 核心区域-C区
+}
+
+// 危险报警音类型
+enum AlarmSoundType {
+    URGENT = 0;          // 急促
+    GENTLE = 1;          // 温和
+}
+
+// 危险报警音时长提醒类型
+enum AlarmSoundDuration {
+    NO_REMINDER = 0;     // 无提醒
+    REMINDER_3S = 1;     // 提醒3s
+    REMINDER_5S = 2;     // 提醒5s
+    REMINDER_10S = 3;    // 提醒10s
+}
+
+// 越野堡垒模式文言提醒/状态
+enum OrsmMessageReminder {
+    ORSM_NONE = 0;                                         // 无提醒
+    SECURITY_MODE_ON = 1;                                  // 越野堡垒模式已开启
+    LOW_BATTERY = 2;                                       // 电池电量低
+    NOT_IN_ON_READY_STATE_FUNCTION_ENTRY_FAILED = 3;       // 当前未在ON/ready，功能进入失败
+    GEAR_NOT_IN_P_POSITION_FUNCTION_ENTRY_FAILED = 4;      // 挡位未在P挡，功能进入失败
+    LOW_BATTERY_FUNCTION_ENTRY_FAILED = 5;                 // 电池电量低，功能进入失败
+    INTELLIGENT_DRIVING_SYSTEM_MALFUNCTION_FUNCTION_ENTRY_FAILED = 6;  // 智驾系统故障，功能进入失败
+    RADAR_CAMERA_MALFUNCTION_FUNCTION_ENTRY_FAILED = 7;                 // 雷达/摄像头故障，功能进入失败
+    SECURITY_FUNCTION_EXITED = 8;                          // 越野堡垒模式退出
+    LOW_BATTERY_FUNCTION_EXITED = 9;                       // 电池电量低，功能退出
+    MULTI_VEHICLE_JOINT_SECURITY_FUNCTION_EXITED = 10;     // 多车联防功能退出
+    VEHICLE_SPEED_TOO_HIGH_FUNCTION_CANNOT_BE_ACTIVATED = 11;   // 车速过高，功能无法进入
+    VEHICLE_SPEED_TOO_HIGH_JOINT_SECURITY_FUNCTION_EXITED = 12;  // 车速过高，联防功能退出
+    NETWORK_CONNECTION_DISCONNECTED_JOINT_SECURITY_FUNCTION_EXITED = 13;  // 网络连接断开，联防功能退出
+}
+
+// 安全生物越线报警状态
+enum OrsmWarningStatus {
+    WARNING_OFF = 0;       // 报警关闭
+    WARNING_ON = 1;        // 报警开启
+}
+
+// 入侵物数量类型
+enum IntrudersNumType {
+    NO_INTRUDER = 0;       // 无入侵物
+    SINGLE_INTRUDER = 1;   // 单个入侵物
+    MULTIPLE_INTRUDERS = 2; // 多个入侵物
+}
+
+// 安防报警等级
+enum OrsmWarnLevel {
+    LEVEL_NONE = 0;        // 无等级
+    WARNLEVEL_1 = 1;
+    WARNLEVEL_2 = 2;
+    WARNLEVEL_3 = 3;
+}
+
+// 入侵物类型枚举
+enum IntruderType {
+    INTRUDER_UNKNOWN = 0;   // 未知
+    INTRUDER_ANIMAL = 1;    // 动物
+    INTRUDER_HUMANKIND = 2; // 人类
+}
+
+// 多车联防组队设置枚举
+enum MultiVehicleTeamSettingEnum {
+    TEAM_NO_REQUEST = 0;      // 0x0: NO_REQUEST
+    TEAM_FORMING = 1;         // 0x1: TEAM_FORMING
+    TEAM_FINISHED = 2;        // 0x2: TEAM_FINISHED
+    TEAM_DISBANDED = 3;       // 0x3: TEAM_DISBANDED
+}
+
+// 多车联防组队请求枚举
+enum MultiVehicleTeamReqEnum {
+    TEAM_REQ_NO_REQUEST = 0;  // 0x0: NO_REQUEST
+    ADD_THE_TEAM = 1;         // 0x1: ADD_THE_TEAM
+    QUIT_THE_TEAM = 2;        // 0x2: QUIT_THE_TEAM
+}
+
+// 多车联防功能准备完成枚举
+enum MultiVehicleTeamPreparedEnum {
+    PREPARED_NO_REQUEST = 0;  // 0x0: NO_REQUEST
+    PREPARED = 1;             // 0x1: Prepared
+    NOT_PREPARED = 2;         // 0x2: NOT_Prepared
+    PREPARED_REVERSED = 3;    // 0x3: Reversed
+}
+
+// 多车联防组队状态枚举
+enum TeamStatusEnum {
+    NO_TEAM_FORMED = 0;         // 0x0: No_team_formed
+    TEAM_UP = 1;                // 0x1: Team_up
+    TEAM_UP_COMPLETED = 2;      // 0x2: Team_up_completed
+}
+
+// ==================== 嵌套消息定义 ====================
+
+// 入侵物信息
+message IntrudersInfo {
+    uint32 intruder_id = 1;           // 入侵物id
+    IntruderType intruder_type = 2;   // 入侵物类型
+    float intruder_pose_x = 3;        // 入侵物位置X坐标
+    float intruder_pose_y = 4;        // 入侵物位置Y坐标
+    float intruder_velocity_x = 5;    // 入侵物X向速度
+    float intruder_velocity_y = 6;    // 入侵物Y向速度
+    uint64 timestamp_nsec = 7;        // 时间戳_纳秒
+}
+
+// 越野堡垒模式状态消息
+message OrsmStatus {
+    Header header = 1;                                 // 消息头
+    OrsmSettingType orsm_setting_st_fb = 2;            // 越野堡垒模式开关反馈
+    BasicSwitchResp humans_recog_setting_fb = 3;       // 危险生物设置（人）反馈
+    BasicSwitchResp animals_recog_setting_fb = 4;      // 危险生物设置（动物）反馈
+    DetecRangeSetting detec_range_setting_fb = 5;      // 监测范围设置反馈
+    BasicSwitchResp alarm_light_setting_fb = 6;        // 危险报警灯光设置反馈
+    BasicSwitchResp alarm_horn_setting_fb = 7;         // 危险报警鸣笛设置反馈
+    AlarmSoundType alarm_sound_setting_fb = 8;         // 危险报警音设置反馈
+    AlarmSoundDuration alarm_snd_dura_setting_fb = 9;  // 危险报警音时长设置反馈
+    OrsmMessageReminder orsm_message_rem = 10;         // 越野堡垒文言提醒
+    OrsmWarningStatus orsm_warning_st = 11;            // 安全生物越线报警状态
+    IntrudersNumType intruders_num = 12;               // 入侵物数量
+    OrsmWarnLevel orsm_warn_level = 13;                // 安防报警等级
+    repeated IntrudersInfo intruders_info = 14;        // 入侵物信息（列表）
+    repeated uint32 orsm_info_reserved = 15;           // 越野堡垒信息预留
+}
+
+// 越野堡垒模式开关设置请求
+message SetOffRoadMdInfoReq {
+    OrsmSettingType orsm_setting_st = 1;               // 越野堡垒模式开关
+    BasicSwitchReq humans_recog_setting = 2;           // 危险生物设置（人）
+    BasicSwitchReq animals_recog_setting = 3;          // 危险生物设置（动物）
+    DetecRangeSetting detec_range_setting = 4;         // 监测范围设置
+    BasicSwitchReq alarm_light_setting = 5;            // 危险报警灯光设置
+    BasicSwitchReq alarm_horn_setting = 6;             // 危险报警鸣笛设置
+    AlarmSoundType alarm_sound_setting = 7;            // 危险报警音设置
+    AlarmSoundDuration alarm_snd_dura_setting = 8;     // 危险报警音时长设置
+    MultiVehicleTeamSettingEnum multi_vehicle_team_setting = 9; // 多车联防组队设置
+    MultiVehicleTeamReqEnum multi_vehicle_team_req = 10;        // 多车联防组队请求
+    MultiVehicleTeamPreparedEnum multi_vehicle_team_prepared = 11; // 多车联防功能准备完成
+}
+
+// 越野堡垒模式开关设置响应/状态
+message OffRoadSetInfoStruct {
+    OrsmSettingType orsm_setting_st = 1;               // 越野堡垒模式开关
+    BasicSwitchResp humans_recog_setting = 2;          // 危险生物设置（人）响应
+    BasicSwitchResp animals_recog_setting = 3;         // 危险生物设置（动物）响应
+    DetecRangeSetting detec_range_setting = 4;         // 监测范围设置
+    BasicSwitchResp alarm_light_setting = 5;           // 危险报警灯光设置响应
+    BasicSwitchResp alarm_horn_setting = 6;            // 危险报警鸣笛设置响应
+    AlarmSoundType alarm_sound_setting = 7;            // 危险报警音设置
+    AlarmSoundDuration alarm_snd_dura_setting = 8;     // 危险报警音时长设置
+    TeamStatusEnum tbox_team_status_info = 9;          // 队伍状态
+}

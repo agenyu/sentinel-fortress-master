@@ -1,0 +1,75 @@
+{
+    "value0": {
+        "sensor_name": "left_camera_fov195",
+        "target_sensor_name": "left_camera_fov195",
+        "device_type": "camera",
+        "param_type": "intrinsic",
+        "param": {
+            "img_dist_w": 1920,
+            "img_dist_h": 1536,
+            "img_new_w": 1920,
+            "img_new_h": 1536,
+            "img_dist_type": "newK",
+            "cam_K": {
+                "rows": 3,
+                "cols": 3,
+                "type": 5,
+                "continuous": true,
+                "data": [
+                    [
+                        435.44921875,
+                        0.0,
+                        963.834228515625
+                    ],
+                    [
+                        0.0,
+                        435.7677001953125,
+                        772.07373046875
+                    ],
+                    [
+                        0.0,
+                        0.0,
+                        1.0
+                    ]
+                ]
+            },
+            "cam_dist": {
+                "rows": 1,
+                "cols": 4,
+                "type": 5,
+                "continuous": true,
+                "data": [
+                    [
+                        0.14788717031478883,
+                        -0.021953225135803224,
+                        -0.007593918591737747,
+                        0.0022778583224862816
+                    ]
+                ]
+            },
+            "cam_K_new": {
+                "rows": 3,
+                "cols": 3,
+                "type": 5,
+                "continuous": true,
+                "data": [
+                    [
+                        435.44921875,
+                        0.0,
+                        963.834228515625
+                    ],
+                    [
+                        0.0,
+                        435.7677001953125,
+                        772.07373046875
+                    ],
+                    [
+                        0.0,
+                        0.0,
+                        1.0
+                    ]
+                ]
+            }
+        }
+    }
+}

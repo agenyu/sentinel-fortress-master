@@ -1,0 +1,25 @@
+# 构建产物
+build/
+build-*/
+cmake-build-*/
+*.o
+*.so
+
+# 模型权重（体积大，不入库，见 models/MODEL_INFO.md）
+models/*.pt
+models/*.onnx
+models/*.engine
+models/*.pth
+models/*.trt
+models/*.wts
+
+# 编辑器 / 系统
+.vscode/
+.DS_Store
+Thumbs.db
+*~
+
+# 日志与临时文件
+*.log
+*.tmp
+docker_test.txt
